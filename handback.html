@@ -9,8 +9,10 @@
   .raw { margin-top: 12px; font-size: 14px; }
 </style>
 <script>
-  // ======== CONFIG: set this to your server (ngrok while testing) ========
-  const HANDOFF_BASE = 'https://2d5698bfafa3.ngrok-free.app'; // <-- change to your current ngrok https URL
+  // Prefer ?svr=... from the URL (set by the server) to avoid editing this file when ngrok changes
+const qp0 = new URLSearchParams(location.search);
+const HANDOFF_BASE = qp0.get('svr') || 'https://2d5698bfafa3.ngrok-free.app';
+
 
   // Helper: get a param by any of several names (case-insensitive variants)
   function getAny(names, qp) {
