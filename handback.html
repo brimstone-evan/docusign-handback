@@ -9,32 +9,28 @@
   .raw { margin-top: 12px; font-size: 14px; }
 </style>
 <script>
-  // Build a lowercased map of all query params for case-insensitive lookup
-  const rawQs = location.search.replace(/^\?/, '');
+  // ======== CONFIG: set this to your server (ngrok while testing) ========
+  const HANDOFF_BASE = 'https://6368073aaca5.ngrok-free.app'; // <-- change to your current ngrok https URL
+
+  // Helper: get a param by any of several names (case-insensitive variants)
+  function getAny(names, qp) {
+    for (const n of names) {
+      const v = qp.get(n);
+      if (v) return v;
+    }
+    return null;
+  }
+
   const qp = new URLSearchParams(location.search);
-  const map = {};
-  for (const [k, v] of qp.entries()) map[k.toLowerCase()] = v;
 
-  const event = map['event'] || '(none)';
-  const state = map['state'] || '(none)';
-  // Accept any common variants + our fallback key
-  const envelopeId = map['envelopeid'] || map['eid'] || '(unknown)';
+  const event = getAny(['event','Event'], qp) || '(none)';
+  const state = getAny(['state','State'], qp) || '(none)';           // this is your visitId
+  const envelopeId = getAny(['envelopeId','EnvelopeId','envelopeID','eid','eId','EID','EId'], qp) || '(unknown)';
 
-  document.addEventListener('DOMContentLoaded', () => {
-    document.body.innerHTML = `
-      <h2>DocuSign returned</h2>
-      <p><strong>event</strong>: <code>${event}</code></p>
-      <p><strong>state</strong>: <code>${state}</code></p>
-      <p><strong>envelopeId</strong>: <code>${envelopeId}</code></p>
+  // Build a tiny debug list of all params
+  const allParams = Array.from(qp.entries()).map(([k,v]) => `${k}=${v}`).join('&');
 
-      <div class="raw">
-        <div><strong>raw query:</strong></div>
-        <code>${rawQs || '(no query params)'}</code>
-      </div>
+  async function pollReady() {
+    if (!state || state === '(none)') return; // no visitId to poll
+    const readyEl = document.getElementById('ready-status');
 
-      <p style="margin-top:20px">
-        <a class="btn" href="https://guest.yourdomain.com/check-in">Return to Check-in</a>
-      </p>
-    `;
-  });
-</script>
